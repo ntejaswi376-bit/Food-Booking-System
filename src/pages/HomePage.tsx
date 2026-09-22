@@ -1,268 +1,305 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Search,
-  Filter,
-  SlidersHorizontal,
-  MapPin,
   Sparkles,
-  ArrowUpDown,
+  ArrowRight,
   X,
+  MapPin,
+  Clock,
+  ShieldCheck,
   ChefHat,
-  Leaf,
+  ChevronDown,
 } from 'lucide-react';
 import { useRestaurants } from '../hooks/useRestaurants';
 import { RestaurantCard } from '../components/restaurant/RestaurantCard';
-import { CUISINES_LIST } from '../config/constants';
-import { useLocationStore } from '../lib/locationStore';
+
+// ─── "How It Works" steps ─────────────────────────────────────────────────────
+const HOW_IT_WORKS = [
+  {
+    step: '01',
+    icon: MapPin,
+    title: 'Pick Your Area',
+    desc: 'Set your Chennai neighbourhood in the top bar — we only show kitchens that actually deliver to you.',
+    color: 'text-primary bg-orange-50',
+  },
+  {
+    step: '02',
+    icon: ChefHat,
+    title: 'Choose Your Crave',
+    desc: 'Browse signature Chettinad feasts, hot biryanis, coastal seafood, and much more from local favourites.',
+    color: 'text-emerald-700 bg-emerald-50',
+  },
+  {
+    step: '03',
+    icon: Clock,
+    title: 'Drop in 20–45 mins',
+    desc: 'Your order rockets straight from the kitchen to your door — or book a table for a dine-in experience.',
+    color: 'text-blue-700 bg-blue-50',
+  },
+];
+
+// Curated Chennai food image (biryani / dosa / filter coffee spread) from Unsplash
+const HERO_IMAGE_URL =
+  'https://images.unsplash.com/photo-1589302168068-964664d93dc0?auto=format&fit=crop&w=1200&q=80';
 
 export const HomePage: React.FC = () => {
-  const { selectedArea } = useLocationStore();
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCuisine, setSelectedCuisine] = useState<string>('All');
-  const [vegOnly, setVegOnly] = useState(false);
-  const [sortBy, setSortBy] = useState<'rating' | 'deliveryTime' | 'costForTwo'>('rating');
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
-  const [page, setPage] = useState(1);
+  const navigate = useNavigate();
+  const [heroSearch, setHeroSearch] = useState('');
 
-  // Query restaurants from API
-  const { data, isLoading, isError, error } = useRestaurants({
-    search: searchQuery,
-    cuisine: selectedCuisine === 'All' ? undefined : selectedCuisine,
-    veg: vegOnly,
-    area: selectedArea || undefined,
-    sort: sortBy,
-    order: sortOrder,
-    page,
-    limit: 30,
+  // Top-rated restaurants — only 6 cards, no full grid
+  const { data: topRatedData, isLoading: isTopRatedLoading } = useRestaurants({
+    sort: 'rating',
+    order: 'desc',
+    limit: 6,
   });
+  const topRated = topRatedData?.items || [];
 
-  const restaurants = data?.items || [];
-  const totalCount = data?.total || 0;
-
-  const handleSortChange = (newSort: 'rating' | 'deliveryTime' | 'costForTwo') => {
-    if (sortBy === newSort) {
-      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
-    } else {
-      setSortBy(newSort);
-      setSortOrder(newSort === 'deliveryTime' ? 'asc' : 'desc');
-    }
-    setPage(1);
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const q = heroSearch.trim();
+    navigate(q ? `/restaurants?search=${encodeURIComponent(q)}` : '/restaurants');
   };
 
-  const handleClearFilters = () => {
-    setSearchQuery('');
-    setSelectedCuisine('All');
-    setVegOnly(false);
-    setSortBy('rating');
-    setSortOrder('desc');
-    setPage(1);
+  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') handleSearchSubmit(e as any);
   };
 
-  const hasActiveFilters =
-    searchQuery.trim() !== '' ||
-    selectedCuisine !== 'All' ||
-    vegOnly ||
-    selectedArea !== null;
+  const scrollToContent = () => {
+    const el = document.getElementById('home-content');
+    if (el) el.scrollIntoView({ behavior: 'smooth' });
+  };
 
   return (
-    <div className="min-h-screen min-w-0 w-full bg-slate-50/50">
-      {/* Hero Banner Section */}
-      <section className="relative bg-gradient-to-b from-orange-50/80 via-white to-slate-50/50 border-b border-orange-100/50 pt-8 pb-12 overflow-hidden">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="max-w-3xl space-y-4">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-orange-100/80 text-primary text-xs font-bold tracking-wide">
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>Chennai&apos;s Hyper-Local Food &amp; Dine-In Platform</span>
+    <div className="min-h-screen min-w-0 w-full bg-[#FFFBF5]">
+
+      {/* ══════════════════════════════════════════════════════════════════
+          HERO — fills exactly the viewport height below the 64px navbar
+      ═══════════════════════════════════════════════════════════════════ */}
+      {/*
+        Hero — flex-col layout:
+          Row 1 (flex-1):   two-column content (text | image), vertically centred
+          Row 2 (shrink-0): scroll indicator strip, always at the bottom, never overlapping
+      */}
+      <section
+        className="relative overflow-hidden bg-gradient-to-br from-[#FFEDD5] via-[#FFF7ED] to-[#FFFBF5]
+                   flex flex-col"
+        style={{ minHeight: 'calc(100vh - 64px)' }}
+      >
+        {/* ── Decorative ambient blobs ─────────────────────────────────── */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -top-32 -left-32 w-[500px] h-[500px] rounded-full bg-orange-300/20 blur-3xl"
+        />
+        <div
+          aria-hidden
+          className="pointer-events-none absolute bottom-0 right-0 w-[400px] h-[400px] rounded-full bg-amber-200/20 blur-3xl"
+        />
+
+        {/* ── ROW 1: two-column content — fills available space ─────── */}
+        <div className="relative z-10 flex-1 flex items-center min-h-0">
+          <div
+            className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8
+                        grid grid-cols-1 lg:grid-cols-2 gap-0"
+          >
+            {/* ── LEFT COLUMN: text content ────────────────────────── */}
+            <div className="flex flex-col justify-center py-10 lg:py-8 lg:pr-12 space-y-6">
+              {/* Badge */}
+              <div className="inline-flex items-center gap-2 self-start px-3 py-1.5 rounded-full bg-orange-100 text-primary text-xs font-bold tracking-wide shadow-xs">
+                <Sparkles className="w-3.5 h-3.5 shrink-0" />
+                <span>Chennai&apos;s Hyper-Local Food &amp; Dine-In Platform</span>
+              </div>
+
+              {/* Headline */}
+              <h1 className="text-4xl sm:text-5xl xl:text-6xl font-black text-slate-900 tracking-tight leading-[1.1]">
+                Crave it.{' '}
+                <br className="hidden sm:block" />
+                <span className="text-primary">We&apos;ll drop it.</span>
+              </h1>
+
+              {/* Subtext */}
+              <p className="text-slate-600 text-base leading-relaxed max-w-md">
+                Order signature Chettinad feasts, hot filter coffee, wood-fired biryanis,
+                and coastal catches across 11 Chennai neighbourhoods — or reserve your
+                table in seconds.
+              </p>
+
+              {/* Trust pills */}
+              <div className="flex flex-wrap items-center gap-3">
+                <span className="flex items-center gap-1.5 text-xs font-semibold text-slate-500 bg-white/70 px-3 py-1.5 rounded-full border border-slate-200/60 shadow-xs">
+                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                  Verified kitchens
+                </span>
+                <span className="flex items-center gap-1.5 text-xs font-semibold text-slate-500 bg-white/70 px-3 py-1.5 rounded-full border border-slate-200/60 shadow-xs">
+                  <Clock className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                  20–45 min drops
+                </span>
+                <span className="flex items-center gap-1.5 text-xs font-semibold text-slate-500 bg-white/70 px-3 py-1.5 rounded-full border border-slate-200/60 shadow-xs">
+                  <span className="text-primary font-bold text-sm leading-none">₹</span>
+                  Free delivery above ₹500
+                </span>
+              </div>
+
+              {/* Search Bar */}
+              <form onSubmit={handleSearchSubmit}>
+                <div className="relative flex items-center max-w-lg shadow-xl shadow-orange-500/10 rounded-2xl bg-white border border-slate-200 focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20 transition">
+                  <Search className="w-5 h-5 text-slate-400 ml-4 shrink-0" />
+                  <input
+                    type="text"
+                    placeholder="Search biryani, dosas, parottas, filter coffee..."
+                    value={heroSearch}
+                    onChange={(e) => setHeroSearch(e.target.value)}
+                    onKeyDown={handleSearchKeyDown}
+                    className="w-full px-3 py-4 text-sm text-slate-800 placeholder-slate-400 bg-transparent focus:outline-none"
+                  />
+                  {heroSearch && (
+                    <button
+                      type="button"
+                      onClick={() => setHeroSearch('')}
+                      className="p-1 mr-1 text-slate-400 hover:text-slate-600 rounded-full transition"
+                      aria-label="Clear search"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  )}
+                  <button
+                    type="submit"
+                    className="m-2 px-5 py-2.5 bg-primary hover:bg-primary-dark text-white text-xs font-bold rounded-xl transition shrink-0"
+                  >
+                    Search
+                  </button>
+                </div>
+              </form>
+
+              {/* Primary CTA */}
+              <div>
+                <button
+                  type="button"
+                  onClick={() => navigate('/restaurants')}
+                  className="inline-flex items-center gap-2.5 px-7 py-3.5 bg-slate-900 hover:bg-slate-800 text-white text-sm font-bold rounded-2xl shadow-xl shadow-slate-900/25 transition group"
+                >
+                  <span>Explore Restaurants</span>
+                  <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+                </button>
+              </div>
             </div>
 
-            <h1 className="text-3xl sm:text-5xl font-black text-slate-900 tracking-tight leading-tight">
-              Crave it. <span className="text-primary">We&apos;ll drop it.</span>
-            </h1>
-
-            <p className="text-slate-600 text-sm sm:text-base leading-relaxed">
-              Order signature Chettinad feasts, hot filter coffee, wood-fired biryanis, and coastal catches
-              across 11 Chennai neighborhoods, or reserve your table in seconds.
-            </p>
-
-            {/* Search Input Bar */}
-            <div className="pt-2">
-              <div className="relative flex items-center max-w-xl shadow-lg shadow-orange-500/5 rounded-2xl bg-white border border-slate-200 focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20 transition">
-                <Search className="w-5 h-5 text-slate-400 ml-4 shrink-0" />
-                <input
-                  type="text"
-                  placeholder="Search for restaurants, biryani, dosas, parottas, desserts..."
-                  value={searchQuery}
-                  onChange={(e) => {
-                    setSearchQuery(e.target.value);
-                    setPage(1);
-                  }}
-                  className="w-full px-3 py-3.5 text-sm text-slate-800 placeholder-slate-400 bg-transparent focus:outline-none"
+            {/* ── RIGHT COLUMN: food image (desktop only) ──────────── */}
+            {/*
+              max-h-[60vh] caps image so: content row + scroll strip
+              always fits inside calc(100vh-64px) on short laptops (800px).
+              min-h-0 on the flex-1 parent lets it shrink safely.
+            */}
+            <div className="hidden lg:flex items-center justify-end py-8">
+              <div
+                className="relative w-full rounded-3xl overflow-hidden shadow-2xl shadow-orange-900/10"
+                style={{ height: 'min(calc(100vh - 240px), 640px)', maxHeight: '60vh' }}
+              >
+                {/* Left-edge gradient fade */}
+                <div
+                  aria-hidden
+                  className="absolute inset-y-0 left-0 w-24 z-10 pointer-events-none"
+                  style={{ background: 'linear-gradient(to right, #FFF7ED 0%, transparent 100%)' }}
                 />
-                {searchQuery && (
-                  <button
-                    type="button"
-                    onClick={() => setSearchQuery('')}
-                    className="p-1 mr-3 text-slate-400 hover:text-slate-600 rounded-full"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                )}
+                {/* Top-edge fade */}
+                <div
+                  aria-hidden
+                  className="absolute inset-x-0 top-0 h-16 z-10 pointer-events-none"
+                  style={{ background: 'linear-gradient(to bottom, #FFEDD5 0%, transparent 100%)' }}
+                />
+                <img
+                  src={HERO_IMAGE_URL}
+                  alt="Delicious Chennai food spread — biryani, dosa and more"
+                  loading="eager"
+                  className="w-full h-full object-cover"
+                />
+                {/* Floating stat chip — positioned inside the image card */}
+                <div className="absolute bottom-5 left-5 z-20 bg-white/90 backdrop-blur-md rounded-2xl px-4 py-3 shadow-lg shadow-orange-900/10 flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                    <ChefHat className="w-5 h-5 text-primary" />
+                  </div>
+                  <div>
+                    <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Kitchens</p>
+                    <p className="text-lg font-black text-slate-900 leading-tight">55+ Verified</p>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
         </div>
+
+        {/* ── Mobile image strip (below text, above scroll strip) ── */}
+        <div className="lg:hidden relative z-10 w-full px-4 pb-4">
+          <div className="relative rounded-2xl overflow-hidden h-48 shadow-lg shadow-orange-900/10">
+            <div
+              aria-hidden
+              className="absolute inset-y-0 left-0 w-12 z-10 pointer-events-none"
+              style={{ background: 'linear-gradient(to right, #FFF7ED 0%, transparent 100%)' }}
+            />
+            <img
+              src={HERO_IMAGE_URL}
+              alt="Chennai food spread"
+              loading="eager"
+              className="w-full h-full object-cover object-center"
+            />
+          </div>
+        </div>
+
+        {/* ── ROW 2: scroll indicator ─────────────────────────────────
+              Absolutely anchored to bottom-8 (32px) of the hero section.
+              The section is `relative`, so this is exactly 32px above
+              the hero's bottom edge on every viewport height.
+        ─────────────────────────────────────────────────────────────── */}
+        <div className="absolute bottom-8 left-0 right-0 z-20 flex justify-center">
+          <button
+            type="button"
+            onClick={scrollToContent}
+            aria-label="Scroll to explore"
+            className="flex flex-col items-center gap-1.5 text-slate-400 hover:text-primary transition group"
+          >
+            <span className="text-[11px] font-semibold tracking-widest uppercase select-none">
+              Scroll to explore
+            </span>
+            <ChevronDown
+              className="w-5 h-5"
+              style={{ animation: 'hero-bounce 1.6s ease-in-out infinite' }}
+            />
+          </button>
+        </div>
       </section>
 
-      {/* Main Content Area */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-        {/* Cuisine Filter Carousel / Chips */}
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider">
-              Explore Cuisines
-            </h3>
-            {hasActiveFilters && (
-              <button
-                type="button"
-                onClick={handleClearFilters}
-                className="text-xs text-primary hover:text-primary-dark font-semibold flex items-center gap-1"
-              >
-                <span>Reset all filters</span>
-                <X className="w-3.5 h-3.5" />
-              </button>
-            )}
-          </div>
+      {/* Bounce keyframe */}
+      <style>{`
+        @keyframes hero-bounce {
+          0%, 100% { transform: translateY(0);   opacity: 0.55; }
+          50%       { transform: translateY(7px); opacity: 1;    }
+        }
+      `}</style>
 
-          <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
-            <button
-              type="button"
-              onClick={() => {
-                setSelectedCuisine('All');
-                setPage(1);
-              }}
-              className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition shadow-xs ${
-                selectedCuisine === 'All'
-                  ? 'bg-slate-900 text-white'
-                  : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'
-              }`}
-            >
-              All Cuisines
-            </button>
+      {/* ══════════════════════════════════════════════════════════════════
+          Below the fold — anchor for smooth-scroll
+      ═══════════════════════════════════════════════════════════════════ */}
+      <div id="home-content" />
 
-            {CUISINES_LIST.map((cuisine) => (
-              <button
-                key={cuisine}
-                type="button"
-                onClick={() => {
-                  setSelectedCuisine(cuisine);
-                  setPage(1);
-                }}
-                className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition shadow-xs ${
-                  selectedCuisine === cuisine
-                    ? 'bg-primary text-white'
-                    : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'
-                }`}
-              >
-                {cuisine}
-              </button>
-            ))}
+      {/* ── Top Rated in Chennai ─────────────────────────────────────── */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h2 className="text-xl sm:text-2xl font-black text-slate-900">Top Rated in Chennai</h2>
+            <p className="text-xs text-slate-500 mt-0.5">Highest-rated kitchens picked just for you</p>
           </div>
+          <button
+            type="button"
+            onClick={() => navigate('/restaurants?sort=rating&order=desc')}
+            className="text-xs font-bold text-primary hover:text-primary-dark flex items-center gap-1 transition whitespace-nowrap"
+          >
+            View all <ArrowRight className="w-3.5 h-3.5" />
+          </button>
         </div>
 
-        {!selectedArea && (
-          <div className="flex items-center gap-2 rounded-2xl border border-orange-200 bg-orange-50 px-4 py-3 text-xs font-semibold text-orange-900">
-            <MapPin className="h-4 w-4 text-primary" />
-            <span>Detect your area in the navbar for more relevant restaurant results.</span>
-          </div>
-        )}
-
-        {/* Filter Controls Bar */}
-        <div className="bg-white p-3.5 rounded-2xl border border-slate-200/80 shadow-xs flex flex-wrap items-center justify-between gap-3">
-          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-            {/* Area Filter */}
-            <div className="flex items-center gap-1.5 bg-slate-100 px-3 py-1.5 rounded-xl text-xs font-semibold text-slate-700">
-              <MapPin className="w-3.5 h-3.5 text-primary" />
-              <span>{selectedArea || 'All Chennai Areas'}</span>
-            </div>
-
-            {/* Veg Only Toggle */}
-            <button
-              type="button"
-              onClick={() => {
-                setVegOnly(!vegOnly);
-                setPage(1);
-              }}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold border transition ${
-                vegOnly
-                  ? 'bg-emerald-50 text-emerald-800 border-emerald-300 ring-1 ring-emerald-400'
-                  : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
-              }`}
-            >
-              <Leaf className={`w-3.5 h-3.5 ${vegOnly ? 'text-emerald-600 fill-emerald-600' : 'text-slate-400'}`} />
-              <span>Pure Veg Only</span>
-            </button>
-          </div>
-
-          {/* Sort Controls */}
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-bold text-slate-400 hidden sm:inline uppercase tracking-wider">
-              Sort by:
-            </span>
-
-            <button
-              type="button"
-              onClick={() => handleSortChange('rating')}
-              className={`flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-bold border transition ${
-                sortBy === 'rating'
-                  ? 'bg-orange-50 text-primary border-primary/40'
-                  : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
-              }`}
-            >
-              <span>Rating</span>
-              {sortBy === 'rating' && <ArrowUpDown className="w-3 h-3 ml-0.5" />}
-            </button>
-
-            <button
-              type="button"
-              onClick={() => handleSortChange('deliveryTime')}
-              className={`flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-bold border transition ${
-                sortBy === 'deliveryTime'
-                  ? 'bg-orange-50 text-primary border-primary/40'
-                  : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
-              }`}
-            >
-              <span>Fastest Delivery</span>
-              {sortBy === 'deliveryTime' && <ArrowUpDown className="w-3 h-3 ml-0.5" />}
-            </button>
-
-            <button
-              type="button"
-              onClick={() => handleSortChange('costForTwo')}
-              className={`flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-bold border transition ${
-                sortBy === 'costForTwo'
-                  ? 'bg-orange-50 text-primary border-primary/40'
-                  : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
-              }`}
-            >
-              <span>Cost</span>
-              {sortBy === 'costForTwo' && <ArrowUpDown className="w-3 h-3 ml-0.5" />}
-            </button>
-          </div>
-        </div>
-
-        {/* Results Count Banner */}
-        <div className="flex items-center justify-between text-xs text-slate-500 font-semibold px-1">
-          <span>
-            Showing <strong className="text-slate-800">{restaurants.length}</strong> of{' '}
-            <strong className="text-slate-800">{totalCount}</strong> kitchens in{' '}
-            {selectedArea || 'Chennai'}
-          </span>
-        </div>
-
-        {/* Restaurants Grid */}
-        {isLoading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pt-4">
-            {Array.from({ length: 8 }).map((_, i) => (
+        {isTopRatedLoading ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {Array.from({ length: 6 }).map((_, i) => (
               <div
                 key={i}
                 className="bg-white rounded-2xl p-3 border border-slate-100 shadow-xs animate-pulse space-y-3"
@@ -270,48 +307,63 @@ export const HomePage: React.FC = () => {
                 <div className="aspect-16/10 bg-slate-200 rounded-xl" />
                 <div className="h-4 bg-slate-200 rounded w-3/4" />
                 <div className="h-3 bg-slate-200 rounded w-1/2" />
-                <div className="h-3 bg-slate-200 rounded w-full" />
               </div>
             ))}
           </div>
-        ) : isError ? (
-          <div className="py-16 text-center bg-white rounded-3xl border border-rose-100 p-8">
-            <p className="text-sm font-bold text-rose-600">Failed to load restaurants</p>
-            <p className="text-xs text-slate-500 mt-1">{(error as any)?.message}</p>
-            <button
-              type="button"
-              onClick={() => window.location.reload()}
-              className="mt-4 px-4 py-2 text-xs font-bold text-white bg-primary rounded-xl"
-            >
-              Retry
-            </button>
-          </div>
-        ) : restaurants.length === 0 ? (
-          <div className="py-20 text-center bg-white rounded-3xl border border-slate-100 p-8 space-y-3">
-            <div className="w-16 h-16 bg-orange-50 text-primary rounded-2xl flex items-center justify-center mx-auto">
-              <ChefHat className="w-8 h-8" />
-            </div>
-            <h3 className="text-lg font-bold text-slate-900">No restaurants match your filters</h3>
-            <p className="text-xs text-slate-500 max-w-sm mx-auto">
-              We couldn&apos;t find any kitchens matching your current search or area. Try resetting
-              filters or searching for a different dish.
-            </p>
-            <button
-              type="button"
-              onClick={handleClearFilters}
-              className="mt-2 px-5 py-2.5 text-xs font-bold text-white bg-primary hover:bg-primary-dark rounded-xl shadow-xs transition"
-            >
-              Clear All Filters
-            </button>
-          </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {restaurants.map((restaurant) => (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {topRated.slice(0, 6).map((restaurant) => (
               <RestaurantCard key={restaurant._id} restaurant={restaurant} />
             ))}
           </div>
         )}
-      </div>
+      </section>
+
+      {/* ── How It Works ─────────────────────────────────────────────── */}
+      <section className="bg-white border-y border-slate-100">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
+          <div className="text-center mb-10">
+            <h2 className="text-xl sm:text-2xl font-black text-slate-900">How CraveDrop Works</h2>
+            <p className="text-xs text-slate-500 mt-1">From craving to doorstep in three easy steps</p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-8">
+            {HOW_IT_WORKS.map(({ step, icon: Icon, title, desc, color }) => (
+              <div key={step} className="flex flex-col items-center text-center space-y-3">
+                <div className={`w-14 h-14 rounded-2xl flex items-center justify-center ${color} mb-1`}>
+                  <Icon className="w-7 h-7" />
+                </div>
+                <span className="text-[11px] font-black tracking-widest text-slate-400 uppercase">
+                  Step {step}
+                </span>
+                <h3 className="text-base font-bold text-slate-900">{title}</h3>
+                <p className="text-xs text-slate-500 leading-relaxed max-w-xs">{desc}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* Bottom CTA strip */}
+          <div className="mt-12 flex flex-col sm:flex-row items-center justify-center gap-4 text-center">
+            <div className="flex items-center gap-2 text-xs font-semibold text-slate-500">
+              <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
+              <span>100% verified authentic Chennai kitchens</span>
+            </div>
+            <span className="hidden sm:inline text-slate-300">•</span>
+            <div className="flex items-center gap-2 text-xs font-semibold text-slate-500">
+              <Clock className="w-4 h-4 text-amber-500 shrink-0" />
+              <span>Free delivery on orders above ₹500</span>
+            </div>
+            <span className="hidden sm:inline text-slate-300">•</span>
+            <button
+              type="button"
+              onClick={() => navigate('/restaurants')}
+              className="inline-flex items-center gap-1.5 text-xs font-bold text-primary hover:text-primary-dark transition"
+            >
+              Start ordering <ArrowRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        </div>
+      </section>
     </div>
   );
 };

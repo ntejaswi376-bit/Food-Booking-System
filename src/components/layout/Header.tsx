@@ -46,7 +46,7 @@ export const Header: React.FC = () => {
     setIsLocationDropdownOpen(false);
     setIsManualOverrideOpen(false);
     setAreaSearch('');
-    navigate('/');
+    navigate('/restaurants');
   };
 
   const filteredAreas = CHENNAI_AREAS.filter((area) =>

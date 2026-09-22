@@ -5,11 +5,9 @@ import {
   CreditCard,
   Banknote,
   ArrowLeft,
-  Plus,
   CheckCircle,
   AlertTriangle,
   ShieldCheck,
-  Phone,
   FileText,
 } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -176,19 +174,19 @@ export const CheckoutPage: React.FC = () => {
           <div className="lg:col-span-7 space-y-6">
             {/* 1. Delivery Address Card */}
             <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-xs space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                  <MapPin className="w-5 h-5 text-primary" />
-                  <span>1. Delivery Address (Chennai)</span>
+              <div className="flex items-center justify-between gap-3 min-w-0">
+                <h3 className="text-base font-bold text-slate-900 flex items-center gap-2 min-w-0">
+                  <MapPin className="w-5 h-5 text-primary shrink-0" />
+                  <span className="truncate">1. Delivery Address (Chennai)</span>
                 </h3>
 
                 {savedAddresses.length > 0 && (
                   <button
                     type="button"
                     onClick={() => setIsAddingNewAddress(!isAddingNewAddress)}
-                    className="text-xs font-bold text-primary hover:text-primary-dark"
+                    className="text-xs font-bold text-primary hover:text-primary-dark shrink-0 whitespace-nowrap"
                   >
-                    {isAddingNewAddress ? 'Use Saved Address' : '+ Add New Address'}
+                    {isAddingNewAddress ? 'Use Saved Address' : '+ Add New'}
                   </button>
                 )}
               </div>
@@ -212,18 +210,18 @@ export const CheckoutPage: React.FC = () => {
                           onChange={() => setSelectedAddressId(addr._id)}
                           className="mt-1 text-primary focus:ring-primary"
                         />
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
                             <span className="text-xs font-bold px-2 py-0.5 bg-slate-100 rounded text-slate-700">
                               {addr.label}
                             </span>
                             {addr.isDefault && (
-                              <span className="text-[10px] font-bold text-primary bg-orange-100 px-1.5 py-0.2 rounded">
+                              <span className="text-[10px] font-bold text-primary bg-orange-100 px-1.5 py-0.5 rounded">
                                 Default
                               </span>
                             )}
                           </div>
-                          <p className="text-sm font-semibold text-slate-800 mt-1">
+                          <p className="text-sm font-semibold text-slate-800 mt-1 truncate">
                             {addr.line1}
                           </p>
                           <p className="text-xs text-slate-500">
@@ -410,7 +408,7 @@ export const CheckoutPage: React.FC = () => {
             <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-md space-y-5">
               <div>
                 <h3 className="text-lg font-black text-slate-900">Order Summary</h3>
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-slate-500 truncate">
                   From {restaurant?.name} ({restaurant?.area})
                 </p>
               </div>
@@ -418,13 +416,15 @@ export const CheckoutPage: React.FC = () => {
               {/* Items List */}
               <div className="divide-y divide-slate-100 max-h-60 overflow-y-auto pr-1">
                 {items.map((i) => (
-                  <div key={i.menuItemId} className="py-2.5 flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-2 truncate">
+                  <div key={i.menuItemId} className="py-2.5 flex items-center justify-between gap-2 min-w-0">
+                    {/* Name — takes all remaining space, truncates */}
+                    <div className="flex items-center gap-2 flex-1 min-w-0">
                       <VegBadge isVeg={i.isVeg} size="sm" />
                       <span className="text-xs font-semibold text-slate-800 truncate">
                         {i.name}
                       </span>
                     </div>
+                    {/* Price — never shrinks */}
                     <div className="text-xs text-slate-600 font-semibold shrink-0">
                       <span>{i.quantity} × </span>
                       <span>{formatINR(i.price)}</span>
@@ -433,16 +433,16 @@ export const CheckoutPage: React.FC = () => {
                 ))}
               </div>
 
-              {/* Cost Calculations */}
+              {/* Cost Calculations — each row: label min-w-0, price shrink-0 */}
               <div className="bg-slate-50 rounded-2xl p-4 space-y-2 border border-slate-100 text-xs text-slate-600">
-                <div className="flex justify-between">
-                  <span>Item Subtotal</span>
-                  <span className="font-semibold text-slate-900">{formatINR(cart?.subtotal || 0)}</span>
+                <div className="flex items-center justify-between gap-2">
+                  <span className="min-w-0">Item Subtotal</span>
+                  <span className="font-semibold text-slate-900 shrink-0">{formatINR(cart?.subtotal || 0)}</span>
                 </div>
 
-                <div className="flex justify-between items-center">
-                  <span>Delivery Fee</span>
-                  <div>
+                <div className="flex items-center justify-between gap-2">
+                  <span className="min-w-0">Delivery Fee</span>
+                  <div className="shrink-0">
                     {cart?.deliveryFee === 0 ? (
                       <span className="font-bold text-emerald-700">FREE</span>
                     ) : (
@@ -453,14 +453,14 @@ export const CheckoutPage: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="flex justify-between">
-                  <span>GST (5% Government Tax)</span>
-                  <span className="font-semibold text-slate-900">{formatINR(cart?.tax || 0)}</span>
+                <div className="flex items-center justify-between gap-2">
+                  <span className="min-w-0">GST (5% Government Tax)</span>
+                  <span className="font-semibold text-slate-900 shrink-0">{formatINR(cart?.tax || 0)}</span>
                 </div>
 
-                <div className="border-t border-slate-200/80 pt-2 flex justify-between text-base font-black text-slate-900">
-                  <span>Grand Total</span>
-                  <span className="text-primary">{formatINR(cart?.total || 0)}</span>
+                <div className="border-t border-slate-200/80 pt-2 flex items-center justify-between gap-2 text-base font-black text-slate-900">
+                  <span className="min-w-0">Grand Total</span>
+                  <span className="text-primary shrink-0">{formatINR(cart?.total || 0)}</span>
                 </div>
               </div>
 

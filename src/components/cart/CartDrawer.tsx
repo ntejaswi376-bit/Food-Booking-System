@@ -41,30 +41,31 @@ export const CartDrawer: React.FC = () => {
         className="absolute inset-0 bg-slate-900/60 backdrop-blur-xs transition-opacity animate-in fade-in duration-200"
       />
 
-      <div className="fixed inset-y-0 right-0 max-w-full flex pl-10">
-        <div className="w-screen max-w-md bg-white shadow-2xl flex flex-col justify-between">
+      {/* Drawer panel — pl-4 on mobile so the drawer isn't too narrow */}
+      <div className="fixed inset-y-0 right-0 max-w-full flex pl-4 sm:pl-10">
+        <div className="w-screen max-w-md bg-white shadow-2xl flex flex-col justify-between overflow-hidden">
           {/* Header */}
-          <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between bg-white sticky top-0 z-10">
-            <div className="flex items-center gap-2.5">
-              <div className="p-2 bg-primary/10 text-primary rounded-lg">
+          <div className="px-4 sm:px-5 py-4 border-b border-slate-100 flex items-center justify-between bg-white sticky top-0 z-10 min-w-0">
+            <div className="flex items-center gap-2.5 min-w-0 flex-1">
+              <div className="p-2 bg-primary/10 text-primary rounded-lg shrink-0">
                 <ShoppingBag className="w-5 h-5" />
               </div>
-              <div>
-                <h2 className="text-base font-bold text-slate-900">Your Crave Cart</h2>
+              <div className="min-w-0">
+                <h2 className="text-base font-bold text-slate-900 truncate">Your Crave Cart</h2>
                 {restaurant && (
-                  <p className="text-xs text-slate-500 font-medium">
+                  <p className="text-xs text-slate-500 font-medium truncate">
                     From {restaurant.name} ({restaurant.area})
                   </p>
                 )}
               </div>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 shrink-0 ml-2">
               {items.length > 0 && (
                 <button
                   type="button"
                   onClick={() => clearCart()}
-                  className="text-xs text-rose-600 hover:text-rose-700 font-medium px-2 py-1 hover:bg-rose-50 rounded transition"
+                  className="text-xs text-rose-600 hover:text-rose-700 font-medium px-2 py-1 hover:bg-rose-50 rounded transition whitespace-nowrap"
                   title="Clear Cart"
                 >
                   Clear
@@ -73,7 +74,7 @@ export const CartDrawer: React.FC = () => {
               <button
                 type="button"
                 onClick={closeCartDrawer}
-                className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition"
+                className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition shrink-0"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -81,7 +82,7 @@ export const CartDrawer: React.FC = () => {
           </div>
 
           {/* Main Body */}
-          <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4">
+          <div className="flex-1 overflow-y-auto px-4 sm:px-5 py-4 space-y-4 min-w-0">
             {isLoading ? (
               <div className="py-16 text-center">
                 <div className="inline-block animate-spin rounded-full h-8 w-8 border-2 border-primary border-t-transparent mb-2" />
@@ -108,14 +109,16 @@ export const CartDrawer: React.FC = () => {
               <>
                 {/* Free Delivery Meter */}
                 <div className="p-3 bg-amber-50/70 border border-amber-200/60 rounded-xl">
-                  <div className="flex items-center justify-between text-xs font-semibold mb-1.5">
-                    <span className="flex items-center gap-1.5 text-amber-900">
-                      <Sparkles className="w-3.5 h-3.5 text-primary" />
-                      {neededForFree > 0
-                        ? `Add ${formatINR(neededForFree)} more for FREE delivery!`
-                        : '🎉 Congratulations! You unlocked FREE delivery!'}
+                  <div className="flex items-center justify-between text-xs font-semibold mb-1.5 gap-2">
+                    <span className="flex items-center gap-1.5 text-amber-900 min-w-0">
+                      <Sparkles className="w-3.5 h-3.5 text-primary shrink-0" />
+                      <span className="truncate">
+                        {neededForFree > 0
+                          ? `Add ${formatINR(neededForFree)} more for FREE delivery!`
+                          : '🎉 You unlocked FREE delivery!'}
+                      </span>
                     </span>
-                    <span className="text-slate-600">{freeProgress}%</span>
+                    <span className="text-slate-600 shrink-0">{freeProgress}%</span>
                   </div>
                   <div className="w-full h-2 bg-amber-200/60 rounded-full overflow-hidden">
                     <div
@@ -128,8 +131,9 @@ export const CartDrawer: React.FC = () => {
                 {/* Items List */}
                 <div className="divide-y divide-slate-100">
                   {items.map((item) => (
-                    <div key={item.menuItemId} className="py-3 flex items-center justify-between gap-3">
-                      <div className="flex items-start gap-2.5 flex-1 min-w-0">
+                    <div key={item.menuItemId} className="py-3 flex items-center gap-2 min-w-0">
+                      {/* Name + badge */}
+                      <div className="flex items-start gap-2 flex-1 min-w-0">
                         <div className="mt-0.5 shrink-0">
                           <VegBadge isVeg={item.isVeg} size="sm" />
                         </div>
@@ -142,7 +146,7 @@ export const CartDrawer: React.FC = () => {
                       </div>
 
                       {/* Quantity Controls */}
-                      <div className="flex items-center gap-2 shrink-0">
+                      <div className="flex items-center gap-1.5 shrink-0">
                         <div className="flex items-center border border-slate-200 rounded-lg bg-slate-50 overflow-hidden">
                           <button
                             type="button"
@@ -176,14 +180,14 @@ export const CartDrawer: React.FC = () => {
                           </button>
                         </div>
 
-                        <span className="text-sm font-bold text-slate-900 w-16 text-right">
+                        <span className="text-sm font-bold text-slate-900 w-14 text-right shrink-0">
                           {formatINR(item.lineTotal)}
                         </span>
 
                         <button
                           type="button"
                           onClick={() => removeItem(item.menuItemId)}
-                          className="p-1 text-slate-400 hover:text-rose-600 transition"
+                          className="p-1 text-slate-400 hover:text-rose-600 transition shrink-0"
                           title="Remove item"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -195,10 +199,10 @@ export const CartDrawer: React.FC = () => {
 
                 {/* Min order alert if applicable */}
                 {isBelowMinOrder && (
-                  <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl flex items-center gap-2 text-xs text-rose-800">
-                    <AlertTriangle className="w-4 h-4 shrink-0 text-rose-600" />
+                  <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl flex items-start gap-2 text-xs text-rose-800">
+                    <AlertTriangle className="w-4 h-4 shrink-0 text-rose-600 mt-0.5" />
                     <span>
-                      Minimum order for {restaurant?.name} is {formatINR(minOrder)}. Please add{' '}
+                      Minimum order for {restaurant?.name} is {formatINR(minOrder)}. Add{' '}
                       <span className="font-bold">{formatINR(minOrder - subtotal)}</span> more to proceed.
                     </span>
                   </div>
@@ -209,13 +213,14 @@ export const CartDrawer: React.FC = () => {
                   <div className="font-bold text-slate-900 text-sm border-b border-slate-200/80 pb-2">
                     Bill Summary
                   </div>
-                  <div className="flex justify-between">
-                    <span>Item Total</span>
-                    <span className="font-semibold text-slate-800">{formatINR(subtotal)}</span>
+                  {/* Each row: label flex-1 min-w-0, price shrink-0 */}
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="min-w-0">Item Total</span>
+                    <span className="font-semibold text-slate-800 shrink-0">{formatINR(subtotal)}</span>
                   </div>
-                  <div className="flex justify-between items-center">
-                    <span>Delivery Partner Fee</span>
-                    <div>
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="min-w-0">Delivery Partner Fee</span>
+                    <div className="shrink-0">
                       {deliveryFee === 0 ? (
                         <span className="font-semibold text-emerald-700 flex items-center gap-1">
                           <span className="line-through text-slate-400 font-normal">₹40</span> FREE
@@ -225,30 +230,33 @@ export const CartDrawer: React.FC = () => {
                       )}
                     </div>
                   </div>
-                  <div className="flex justify-between">
-                    <span>GST (5% Government Tax)</span>
-                    <span className="font-semibold text-slate-800">{formatINR(tax)}</span>
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="min-w-0">GST (5% Tax)</span>
+                    <span className="font-semibold text-slate-800 shrink-0">{formatINR(tax)}</span>
                   </div>
-                  <div className="border-t border-slate-200/80 pt-2 flex justify-between text-sm font-bold text-slate-900">
-                    <span>To Pay</span>
-                    <span className="text-primary">{formatINR(total)}</span>
+                  <div className="border-t border-slate-200/80 pt-2 flex items-center justify-between gap-2 text-sm font-bold text-slate-900">
+                    <span className="min-w-0">To Pay</span>
+                    <span className="text-primary shrink-0">{formatINR(total)}</span>
                   </div>
                 </div>
               </>
             )}
           </div>
 
-          {/* Footer Checkout Bar */}
+          {/* Footer Checkout Bar — safe-area aware */}
           {items.length > 0 && (
-            <div className="p-4 border-t border-slate-100 bg-white space-y-2 sticky bottom-0">
+            <div
+              className="px-4 sm:px-5 pt-3 pb-3 border-t border-slate-100 bg-white space-y-2 sticky bottom-0"
+              style={{ paddingBottom: 'max(12px, env(safe-area-inset-bottom, 12px))' }}
+            >
               {!isSignedIn ? (
                 <SignInButton mode="modal">
                   <button
                     type="button"
                     className="w-full py-3 px-4 bg-primary hover:bg-primary-dark text-white font-bold rounded-xl shadow-xs transition flex items-center justify-between"
                   >
-                    <span>Sign In to Checkout</span>
-                    <ArrowRight className="w-5 h-5" />
+                    <span className="min-w-0 truncate">Sign In to Checkout</span>
+                    <ArrowRight className="w-5 h-5 shrink-0 ml-2" />
                   </button>
                 </SignInButton>
               ) : (
@@ -256,17 +264,19 @@ export const CartDrawer: React.FC = () => {
                   type="button"
                   disabled={isBelowMinOrder}
                   onClick={handleProceedToCheckout}
-                  className="w-full py-3 px-4 bg-primary hover:bg-primary-dark text-white font-bold rounded-xl shadow-xs transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-between"
+                  className="w-full py-3 px-4 bg-primary hover:bg-primary-dark text-white font-bold rounded-xl shadow-xs transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-between gap-2"
                 >
-                  <div className="text-left">
+                  {/* Left: item count + price */}
+                  <div className="text-left min-w-0">
                     <span className="text-xs font-medium block text-orange-100 uppercase tracking-wider">
                       {items.length} {items.length === 1 ? 'item' : 'items'}
                     </span>
-                    <span className="text-base">{formatINR(total)}</span>
+                    <span className="text-base truncate block">{formatINR(total)}</span>
                   </div>
-                  <div className="flex items-center gap-1 font-bold">
-                    <span>Proceed to Checkout</span>
-                    <ArrowRight className="w-5 h-5" />
+                  {/* Right: label + arrow — never shrinks or clips */}
+                  <div className="flex items-center gap-1 font-bold shrink-0">
+                    <span className="whitespace-nowrap text-sm">Proceed to Checkout</span>
+                    <ArrowRight className="w-5 h-5 shrink-0" />
                   </div>
                 </button>
               )}

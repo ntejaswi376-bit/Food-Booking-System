@@ -11,6 +11,7 @@ import { ConflictModal } from './components/cart/ConflictModal';
 import { AuthSync, RequireAuth, RequireAdmin } from './components/common/AuthSync';
 
 import { HomePage } from './pages/HomePage';
+import { RestaurantsPage } from './pages/RestaurantsPage';
 import { RestaurantDetailPage } from './pages/RestaurantDetailPage';
 import { CheckoutPage } from './pages/CheckoutPage';
 import { MyOrdersPage } from './pages/MyOrdersPage';
@@ -74,6 +75,7 @@ export default function App() {
             {/* Customer Storefront Routes */}
             <Route element={<MainStorefrontLayout />}>
               <Route path="/" element={<HomePage />} />
+              <Route path="/restaurants" element={<RestaurantsPage />} />
               <Route path="/restaurant/:id" element={<RestaurantDetailPage />} />
               <Route
                 path="/checkout"

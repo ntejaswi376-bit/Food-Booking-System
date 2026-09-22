@@ -1,11 +1,12 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { MapPin, Heart, Shield, Clock } from 'lucide-react';
 import { CHENNAI_AREAS } from '../../config/constants';
 import { useLocationStore } from '../../lib/locationStore';
 
 export const Footer: React.FC = () => {
   const { setSelectedArea } = useLocationStore();
+  const navigate = useNavigate();
 
   return (
     <footer className="bg-slate-900 text-slate-400 text-xs border-t border-slate-800 mt-20">
@@ -45,6 +46,7 @@ export const Footer: React.FC = () => {
                   type="button"
                   onClick={() => {
                     setSelectedArea(area);
+                    navigate('/restaurants');
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                   }}
                   className="text-left text-xs hover:text-white transition py-1 truncate"
@@ -80,6 +82,9 @@ export const Footer: React.FC = () => {
           <div className="flex items-center gap-6">
             <Link to="/" className="hover:text-slate-300">
               Home
+            </Link>
+            <Link to="/restaurants" className="hover:text-slate-300">
+              Restaurants
             </Link>
             <Link to="/orders" className="hover:text-slate-300">
               My Orders
